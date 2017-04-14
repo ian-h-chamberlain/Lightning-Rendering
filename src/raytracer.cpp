@@ -45,106 +45,173 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
   hit = Hit();
   bool intersect = CastRay(ray,hit,false);
     
+  glm::vec3 answer, normal, point;
+  Material *m;
+
   // if there is no intersection, simply return the background color
   if (intersect == false) {
-    return glm::vec3(srgb_to_linear(mesh->background_color.r),
+    answer = glm::vec3(srgb_to_linear(mesh->background_color.r),
                      srgb_to_linear(mesh->background_color.g),
                      srgb_to_linear(mesh->background_color.b));
+
+    // need to fake some other values for the sake of rendering lightning
+    normal = glm::vec3(0.0f);
+    point = ray.pointAtParameter(1.0f);
+
+    // NOTE: need to delete m if intersect == false at end
+    m = new Material("", glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f), 0.0f);
+  }
+  else {
+    normal = hit.getNormal();
+    point = ray.pointAtParameter(hit.getT());
+    m = hit.getMaterial();
   }
 
-  // otherwise decide what to do based on the material
-  Material *m = hit.getMaterial();
   assert (m != NULL);
 
   // rays coming from the light source are set to white, don't bother to ray trace further.
   if (glm::length(m->getEmittedColor()) > 0.001) {
     return glm::vec3(1,1,1);
   } 
- 
   
-  glm::vec3 normal = hit.getNormal();
-  glm::vec3 point = ray.pointAtParameter(hit.getT());
-  glm::vec3 answer;
-
   // ----------------------------------------------
   //  start with the indirect light (ambient light)
   glm::vec3 diffuse_color = m->getDiffuseColor(hit.get_s(),hit.get_t());
-  if (args->gather_indirect) {
+  if (args->gather_indirect && intersect) {
     // photon mapping for more accurate indirect light
     answer = diffuse_color * (photon_mapping->GatherIndirect(point, normal, ray.getDirection()) + args->ambient_light);
-  } else {
+  } else if (intersect) {
     // the usual ray tracing hack for indirect light
     answer = diffuse_color * args->ambient_light;
   }      
 
-  // ----------------------------------------------
-  // add contributions from each light that is not in shadow
-  int num_lights = mesh->getLights().size();
-  for (int i = 0; i < num_lights; i++) {
+  // ---------------------------------
+  // render the lightning segment by segment
 
-    Face *f = mesh->getLights()[i];
-    glm::vec3 lightColor = f->getMaterial()->getEmittedColor() * f->getArea();
-    glm::vec3 myLightColor;
-    glm::vec3 lightCentroid = f->computeCentroid();
-    glm::vec3 dirToLightCentroid = glm::normalize(lightCentroid-point);
-    
-    if (args->num_shadow_samples > 1) {
-      glm::vec3 shadedColor(0.0f);
-      for (int j=0; j<args->num_shadow_samples; j++) {
-        Hit shadowHit;
-        glm::vec3 randomDir = glm::normalize(f->RandomPoint() - point);
-        Ray shadowRay(point, randomDir);
-        bool didHit = CastRay(shadowRay, shadowHit, false);
+  // for now hardcode lighting segments
+  // TODO use actual lightning data structure
+  const int numSegments = 2;
+  glm::vec3 points[numSegments][2];
 
-        if (didHit) {
-          // we got a hit in the direction of shadowRay
-          RayTree::AddShadowSegment(shadowRay, 0.0f, shadowHit.getT());
+  // some parameters of the lightning
+  glm::vec3 lightColor(0.6f, 1.0f, 0.7f);
+  float lightningWidth = 0.05f;
+  float sharpness = 6.0f;
+  float maxContribution = 10.0f;
 
-          if (glm::length(shadowHit.getMaterial()->getEmittedColor()) > 0.001) {
-            // we hit the light, add its color effect
+  // hardcode some segment points for a simple test
+  points[0][0] = glm::vec3(0.5f,0.0f,0.0f);
+  points[0][1] = glm::vec3(0.0f,0.5f,0.0f);
+  points[1][0] = glm::vec3(0.0f,0.5f,0.0f);
+  points[1][1] = glm::vec3(0.5f,1.0f,0.0f);
 
-            float distToLightCentroid = glm::length(lightCentroid-point);
-            myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
-            
-            // add the lighting contribution from this particular light at this point
-            shadedColor += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
+  for (int i=0; i<numSegments; i++) {
+
+    // -------------------------------------------------
+    // change color based on distance from segment
+
+    // find the distance between segment i and the ray
+    glm::vec3 segment_dir = glm::normalize(points[i][1] - points[i][0]);
+    glm::vec3 perp = glm::cross(ray.getDirection(), segment_dir);
+
+    // find the closest point on line i to the ray
+    float point_dist = glm::dot(ray.getOrigin() - points[i][0], glm::cross(ray.getDirection(), perp));
+    point_dist /= glm::dot(segment_dir, glm::cross(ray.getDirection(), perp));
+
+    // clamp to be in the actual segment
+    point_dist = std::max(point_dist, 0.0f);
+    point_dist = std::min(point_dist, glm::length(points[i][1] - points[i][0]));
+
+    // and find the distance from that point to the ray
+    glm::vec3 p = points[i][0] + point_dist * segment_dir;
+    float dist = glm::length(glm::cross(p - ray.getOrigin(), ray.getDirection()));
+
+    // now add the contribution based on distance
+    float contribution = std::exp(-std::pow(2.0 * dist / lightningWidth, sharpness));
+
+    // clamp each color separately to the max contribution
+    glm::vec3 result = contribution * lightColor;
+    result[0] = std::min(result[0], maxContribution);
+    result[1] = std::min(result[1], maxContribution);
+    result[2] = std::min(result[2], maxContribution);
+
+    answer += result;
+
+    // ------------------------------------------------
+    // add lighting contribution from each segment as a point light
+
+    if (intersect) {
+
+      glm::vec3 myLightColor;
+
+      // get the midpoint of the segment to use as a light
+      glm::vec3 lightCentroid = 0.5f * (points[i][0] + points[i][1]);
+      glm::vec3 dirToLightCentroid = glm::normalize(lightCentroid-point);
+      
+      // TODO: soft shadows by uniformly sampling along the segment
+      /*
+      if (args->num_shadow_samples > 1) {
+        glm::vec3 shadedColor(0.0f);
+        for (int j=0; j<args->num_shadow_samples; j++) {
+          Hit shadowHit;
+          glm::vec3 randomDir = glm::normalize(f->RandomPoint() - point);
+          Ray shadowRay(point, randomDir);
+          bool didHit = CastRay(shadowRay, shadowHit, false);
+
+          if (didHit) {
+            // we got a hit in the direction of shadowRay
+            RayTree::AddShadowSegment(shadowRay, 0.0f, shadowHit.getT());
+
+            if (glm::length(shadowHit.getMaterial()->getEmittedColor()) > 0.001) {
+              // we hit the light, add its color effect
+
+              float distToLightCentroid = glm::length(lightCentroid-point);
+              myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
+              
+              // add the lighting contribution from this particular light at this point
+              shadedColor += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
+            }
           }
         }
+
+        // find the average color per pixel and add it
+        answer += shadedColor / (float) args->num_shadow_samples;
       }
+      */
+      if (args->num_shadow_samples == 1) {
+        // cast a ray towards the midpoint of each segment and see if we hit anything
+        Hit shadowHit;
+        Ray shadowRay(point, dirToLightCentroid);
+        bool didHit = CastRay(shadowRay, shadowHit, false);
 
-      // find the average color per pixel and add it
-      answer += shadedColor / (float) args->num_shadow_samples;
-    }
-    else if (args->num_shadow_samples == 1) {
-      // cast a ray towards the light and see if we hit anything
-      Hit shadowHit;
-      Ray shadowRay(point, dirToLightCentroid);
-      bool didHit = CastRay(shadowRay, shadowHit, false);
+        float distToLightCentroid = glm::length(lightCentroid-point);
 
-      if (didHit) {
-        // we got a hit in the direction of shadowRay
-        RayTree::AddShadowSegment(shadowRay, 0.0f, shadowHit.getT());
+        if (didHit && shadowHit.getT() < distToLightCentroid) {
+          // we got a hit in the direction of shadowRay, keep in shadow
+          RayTree::AddShadowSegment(shadowRay, 0.0f, shadowHit.getT());
+        }
+        else {
+          // no hit, add light contribution
 
-        if (glm::length(shadowHit.getMaterial()->getEmittedColor()) > 0.001) {
-          // we hit the light, add its color effect
-
-          float distToLightCentroid = glm::length(lightCentroid-point);
           myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
           
           // add the lighting contribution from this particular light at this point
           answer += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
         }
       }
-    }
-    else {
-      // just do the normal lighting without shadows
-      float distToLightCentroid = glm::length(lightCentroid-point);
-      myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
-      
-      // add the lighting contribution from this particular light at this point
-      answer += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
+      else {
+        // just do the normal lighting without shadows
+        float distToLightCentroid = glm::length(lightCentroid-point);
+        myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
+        
+        // add the lighting contribution from this segment
+        answer += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
+      }
     }
   }
+
+  // ---------------------------------
+  // end lightning rendering
       
   // ----------------------------------------------
   // add contribution from reflection, if the surface is shiny
@@ -152,7 +219,7 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
 
   // ignore if the reflective color contribution is too low
   // or we've reached the recursive limit
-  if (glm::length(reflectiveColor) > EPSILON && bounce_count > 0) {
+  if (intersect && glm::length(reflectiveColor) > EPSILON && bounce_count > 0) {
     // trace a ray recursively to get the reflected color
     glm::vec3 dir = MirrorDirection(normal, ray.getDirection());
     Ray reflectRay(point, dir);
@@ -164,6 +231,11 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
     RayTree::AddReflectedSegment(reflectRay, 0.0f, reflectHit.getT());
   
     answer += reflectedColor * reflectiveColor;
+  }
+
+  // cleanup for fake material if needed
+  if (!intersect) {
+    delete m;
   }
   
   return answer; 
