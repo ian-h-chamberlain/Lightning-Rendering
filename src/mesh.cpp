@@ -263,6 +263,10 @@ void Mesh::Load(ArgParser *_args) {
       objfile >> r >> g >> b;
       emitted = glm::vec3(r,g,b);
       materials.push_back(new Material(texture_file,diffuse,reflective,emitted,roughness));
+    } else if (token == "#") {
+      std::string comment;
+      std::getline(objfile, comment);
+      continue;
     } else {
       std::cout << "UNKNOWN TOKEN " << token << std::endl;
       exit(0);
