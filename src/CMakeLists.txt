@@ -25,6 +25,9 @@ add_executable(${my_executable}
   photon_mapping.cpp
   kdtree.cpp
   argparser.h
+  lightningsegment.cpp
+  lightningsegment.h
+  lightning.cpp
   boundingbox.h
   boundingbox.cpp
   camera.h

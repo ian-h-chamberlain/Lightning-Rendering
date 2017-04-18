@@ -88,9 +88,7 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
   // ---------------------------------
   // render the lightning segment by segment
 
-  // for now hardcode lighting segments
-  // TODO use actual lightning data structure
-  const int numSegments = 2;
+  const int numSegments = mesh->lightning_segments.size();
   glm::vec3 points[numSegments][2];
 
   // some parameters of the lightning
@@ -99,11 +97,11 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
   float sharpness = 6.0f;
   float maxContribution = 10.0f;
 
-  // hardcode some segment points for a simple test
-  points[0][0] = glm::vec3(0.5f,0.0f,0.0f);
-  points[0][1] = glm::vec3(0.0f,0.5f,0.0f);
-  points[1][0] = glm::vec3(0.0f,0.5f,0.0f);
-  points[1][1] = glm::vec3(0.5f,1.0f,0.0f);
+  // Get lightning segments
+  for (int i = 0; i < numSegments; i++) {
+    points[i][0] = mesh->lightning_segments[i].getStart();
+    points[i][1] = mesh->lightning_segments[i].getEnd();
+  }
 
   for (int i=0; i<numSegments; i++) {
 
@@ -212,7 +210,10 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
 
   // ---------------------------------
   // end lightning rendering
-      
+    
+
+
+
   // ----------------------------------------------
   // add contribution from reflection, if the surface is shiny
   glm::vec3 reflectiveColor = m->getReflectiveColor();

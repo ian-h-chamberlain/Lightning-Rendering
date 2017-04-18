@@ -266,7 +266,11 @@ void Mesh::Load(ArgParser *_args) {
     } else if (token == "#") {
       std::string comment;
       std::getline(objfile, comment);
-      continue;
+    } else if (token == "l") {
+      // Starting point of lightning
+      float x,y,z;
+      objfile >> x >> y >> z;
+      addLightning(glm::vec3(x,y,z));
     } else {
       std::cout << "UNKNOWN TOKEN " << token << std::endl;
       exit(0);

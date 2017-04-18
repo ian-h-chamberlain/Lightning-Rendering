@@ -6,6 +6,7 @@
 #include <vector>
 #include "hash.h"
 #include "material.h"
+#include "lightningsegment.h"
 
 class Vertex;
 class Edge;
@@ -106,6 +107,10 @@ public:
   // OTHER FUNCTIONS
   void Subdivision();
 
+  // ===============
+  // LIGHTNING
+  void addLightning(glm::vec3 start_pos);
+
 private:
 
   // ==================================================
@@ -123,6 +128,7 @@ private:
   std::vector<Material*> materials;
   glm::vec3 background_color;
   Camera *camera;
+  std::vector<LightningSegment> lightning_segments;
  private:
 
   // the bounding box of all rasterized faces in the scene
