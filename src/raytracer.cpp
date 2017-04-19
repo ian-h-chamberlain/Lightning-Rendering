@@ -94,8 +94,10 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
   // some parameters of the lightning
   glm::vec3 lightColor(0.6f, 1.0f, 0.7f);
   float lightningWidth = 0.05f;
+  float glowWidth = 0.15f;
   float sharpness = 6.0f;
-  float maxContribution = 10.0f;
+  float maxChannelContribution = 1.0f;
+  float maxGlowContribution = 0.08f;
 
   // Get lightning segments
   for (int i = 0; i < numSegments; i++) {
@@ -128,10 +130,18 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
     float contribution = std::exp(-std::pow(2.0 * dist / lightningWidth, sharpness));
 
     // clamp each color separately to the max contribution
-    glm::vec3 result = contribution * lightColor;
-    result[0] = std::min(result[0], maxContribution);
-    result[1] = std::min(result[1], maxContribution);
-    result[2] = std::min(result[2], maxContribution);
+    glm::vec3 result = maxChannelContribution * contribution * lightColor;
+    /*
+    result[0] = std::min(result[0], maxChannelContribution);
+    result[1] = std::min(result[1], maxChannelContribution);
+    result[2] = std::min(result[2], maxChannelContribution);
+    */
+
+    answer += result;
+
+    // now add the glow component
+    contribution = std::exp(-std::pow(dist / glowWidth, 2.0f));
+    result = maxGlowContribution * contribution * lightColor;
 
     answer += result;
 
