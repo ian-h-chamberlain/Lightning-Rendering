@@ -89,7 +89,6 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
   // render the lightning segment by segment
 
   const int numSegments = mesh->lightning_segments.size();
-  glm::vec3 points[numSegments][2];
 
   // some parameters of the lightning
   glm::vec3 lightColor(0.6f, 1.0f, 0.7f);
@@ -99,31 +98,28 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
   float maxChannelContribution = 1.0f;
   float maxGlowContribution = 0.08f;
 
-  // Get lightning segments
-  for (int i = 0; i < numSegments; i++) {
-    points[i][0] = mesh->lightning_segments[i].getStart();
-    points[i][1] = mesh->lightning_segments[i].getEnd();
-  }
-
   for (int i=0; i<numSegments; i++) {
+
+    glm::vec3 startPoint = mesh->lightning_segments[i].getStart();
+    glm::vec3 endPoint = mesh->lightning_segments[i].getEnd();
 
     // -------------------------------------------------
     // change color based on distance from segment
 
     // find the distance between segment i and the ray
-    glm::vec3 segment_dir = glm::normalize(points[i][1] - points[i][0]);
+    glm::vec3 segment_dir = glm::normalize(endPoint - startPoint);
     glm::vec3 perp = glm::cross(ray.getDirection(), segment_dir);
 
     // find the closest point on line i to the ray
-    float point_dist = glm::dot(ray.getOrigin() - points[i][0], glm::cross(ray.getDirection(), perp));
+    float point_dist = glm::dot(ray.getOrigin() - startPoint, glm::cross(ray.getDirection(), perp));
     point_dist /= glm::dot(segment_dir, glm::cross(ray.getDirection(), perp));
 
     // clamp to be in the actual segment
     point_dist = std::max(point_dist, 0.0f);
-    point_dist = std::min(point_dist, glm::length(points[i][1] - points[i][0]));
+    point_dist = std::min(point_dist, glm::length(endPoint - startPoint));
 
     // and find the distance from that point to the ray
-    glm::vec3 p = points[i][0] + point_dist * segment_dir;
+    glm::vec3 p = startPoint + point_dist * segment_dir;
     float dist = glm::length(glm::cross(p - ray.getOrigin(), ray.getDirection()));
 
     // now add the contribution based on distance
@@ -148,7 +144,7 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
       glm::vec3 myLightColor;
 
       // get the midpoint of the segment to use as a light
-      glm::vec3 lightPoint = 0.5f * (points[i][0] + points[i][1]);
+      glm::vec3 lightPoint = 0.5f * (startPoint + endPoint);
       glm::vec3 dirToLightPoint = glm::normalize(lightPoint - point);
       float distToLightPoint = glm::length(lightPoint - point);
       
@@ -161,7 +157,7 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
           // random sampling for soft shadows
           if (args->num_shadow_samples > 1) {
             float alpha = args->rand();
-            lightPoint = alpha * points[i][0] + (1 - alpha) * points[i][1];
+            lightPoint = alpha * startPoint + (1 - alpha) * endPoint;
           }
 
           distToLightPoint = glm::length(lightPoint - point);
