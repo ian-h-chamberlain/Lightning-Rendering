@@ -131,11 +131,6 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
 
     // clamp each color separately to the max contribution
     glm::vec3 result = maxChannelContribution * contribution * lightColor;
-    /*
-    result[0] = std::min(result[0], maxChannelContribution);
-    result[1] = std::min(result[1], maxChannelContribution);
-    result[2] = std::min(result[2], maxChannelContribution);
-    */
 
     answer += result;
 
@@ -153,67 +148,54 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
       glm::vec3 myLightColor;
 
       // get the midpoint of the segment to use as a light
-      glm::vec3 lightCentroid = 0.5f * (points[i][0] + points[i][1]);
-      glm::vec3 dirToLightCentroid = glm::normalize(lightCentroid-point);
+      glm::vec3 lightPoint = 0.5f * (points[i][0] + points[i][1]);
+      glm::vec3 dirToLightPoint = glm::normalize(lightPoint - point);
+      float distToLightPoint = glm::length(lightPoint - point);
       
-      // TODO: soft shadows by uniformly sampling along the segment
-      /*
-      if (args->num_shadow_samples > 1) {
+      // soft shadows by uniformly sampling along the segment
+      if (args->num_shadow_samples >= 1) {
         glm::vec3 shadedColor(0.0f);
+
         for (int j=0; j<args->num_shadow_samples; j++) {
+
+          // random sampling for soft shadows
+          if (args->num_shadow_samples > 1) {
+            float alpha = args->rand();
+            lightPoint = alpha * points[i][0] + (1 - alpha) * points[i][1];
+          }
+
+          distToLightPoint = glm::length(lightPoint - point);
+          dirToLightPoint = glm::normalize(lightPoint - point);
+
+          // cast a ray towards the sample light point
           Hit shadowHit;
-          glm::vec3 randomDir = glm::normalize(f->RandomPoint() - point);
-          Ray shadowRay(point, randomDir);
+          Ray shadowRay(point, dirToLightPoint);
           bool didHit = CastRay(shadowRay, shadowHit, false);
 
-          if (didHit) {
-            // we got a hit in the direction of shadowRay
+          float distToLightPoint = glm::length(lightPoint-point);
+
+          if (didHit && shadowHit.getT() < distToLightPoint) {
+            // we got a hit in the direction of shadowRay, keep in shadow
             RayTree::AddShadowSegment(shadowRay, 0.0f, shadowHit.getT());
+          }
+          else {
+            // no hit, add light contribution
 
-            if (glm::length(shadowHit.getMaterial()->getEmittedColor()) > 0.001) {
-              // we hit the light, add its color effect
-
-              float distToLightCentroid = glm::length(lightCentroid-point);
-              myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
-              
-              // add the lighting contribution from this particular light at this point
-              shadedColor += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
-            }
+            myLightColor = lightColor / float(M_PI*distToLightPoint*distToLightPoint);
+            
+            // add the lighting contribution from this particular light at this point
+            shadedColor += m->Shade(ray,hit,dirToLightPoint,myLightColor,args);
           }
         }
 
-        // find the average color per pixel and add it
         answer += shadedColor / (float) args->num_shadow_samples;
-      }
-      */
-      if (args->num_shadow_samples == 1) {
-        // cast a ray towards the midpoint of each segment and see if we hit anything
-        Hit shadowHit;
-        Ray shadowRay(point, dirToLightCentroid);
-        bool didHit = CastRay(shadowRay, shadowHit, false);
-
-        float distToLightCentroid = glm::length(lightCentroid-point);
-
-        if (didHit && shadowHit.getT() < distToLightCentroid) {
-          // we got a hit in the direction of shadowRay, keep in shadow
-          RayTree::AddShadowSegment(shadowRay, 0.0f, shadowHit.getT());
-        }
-        else {
-          // no hit, add light contribution
-
-          myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
-          
-          // add the lighting contribution from this particular light at this point
-          answer += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
-        }
       }
       else {
         // just do the normal lighting without shadows
-        float distToLightCentroid = glm::length(lightCentroid-point);
-        myLightColor = lightColor / float(M_PI*distToLightCentroid*distToLightCentroid);
+        myLightColor = lightColor / float(M_PI*distToLightPoint*distToLightPoint);
         
         // add the lighting contribution from this segment
-        answer += m->Shade(ray,hit,dirToLightCentroid,myLightColor,args);
+        answer += m->Shade(ray,hit,dirToLightPoint,myLightColor,args);
       }
     }
   }
