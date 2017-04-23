@@ -141,6 +141,7 @@ public:
     raytracing_animation = false;
     radiosity_animation = false;
     render_to_file = false;
+    render_sequence = false;
 
     // RADIOSITY PARAMETERS
     render_mode = RENDER_MATERIALS;
@@ -179,6 +180,7 @@ public:
   bool raytracing_animation;
   bool radiosity_animation;
   bool render_to_file;
+  bool render_sequence;
 
   // RADIOSITY PARAMETERS
   enum RENDER_MODE render_mode;

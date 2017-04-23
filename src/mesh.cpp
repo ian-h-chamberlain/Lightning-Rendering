@@ -270,6 +270,7 @@ void Mesh::Load(ArgParser *_args) {
       // Starting point of lightning
       float x,y,z;
       objfile >> x >> y >> z;
+      lightning_start = glm::vec3(x,y,z);
       addLightning(glm::vec3(x,y,z));
     } else {
       std::cout << "UNKNOWN TOKEN " << token << std::endl;

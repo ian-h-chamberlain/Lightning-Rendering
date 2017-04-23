@@ -131,6 +131,7 @@ private:
   glm::vec3 background_color;
   Camera *camera;
   std::vector<LightningSegment> lightning_segments;
+  glm::vec3 lightning_start;
  private:
 
   // the bounding box of all rasterized faces in the scene

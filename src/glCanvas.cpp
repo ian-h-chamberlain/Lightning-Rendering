@@ -178,6 +178,11 @@ void GLCanvas::animate(){
     args->render_to_file = false;
   }
 
+  if (args->render_sequence) {
+    renderSequence("output");
+    args->render_sequence = false;
+  }
+
   usleep (1000);
 }
 
@@ -470,6 +475,11 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
     case 'y':  case 'Y':
       args->gather_indirect = false;
       args->render_to_file = true;
+      break;
+
+    case 'u': case 'U':
+      args->gather_indirect = false;
+      args->render_sequence = true;
       break;
 
     case 'q':  case 'Q':

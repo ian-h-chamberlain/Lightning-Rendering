@@ -83,7 +83,8 @@ public:
   static void cleanupVBOs();
 
   static void animate();
-  static void renderImage(const char* filename);
+  static void renderImage(const char* filename, bool status=true);
+  static void renderSequence(const char* dirname);
 
   static int DrawPixel();
   static glm::vec3 TraceRay(double i, double j);
