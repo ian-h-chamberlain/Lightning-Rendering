@@ -174,7 +174,7 @@ void GLCanvas::animate(){
   }
 
   if (args->render_to_file) {
-    renderImage("test.png"); 
+    renderImage("test.ppm"); 
     args->render_to_file = false;
   }
 

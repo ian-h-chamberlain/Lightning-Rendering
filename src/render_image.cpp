@@ -46,7 +46,7 @@ void GLCanvas::renderImage(const char* filename) {
     }
   }
 
-  if (!matrixToPPM(dimx, dimy, image, "test.ppm")) 
+  if (!matrixToPPM(dimx, dimy, image, filename)) 
     printf("Could not write to file\n");
   else 
     printf("Done writing image\n");
