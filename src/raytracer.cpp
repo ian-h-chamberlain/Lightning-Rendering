@@ -102,6 +102,9 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
 
     glm::vec3 startPoint = mesh->lightning_segments[i].getStart();
     glm::vec3 endPoint = mesh->lightning_segments[i].getEnd();
+    lightningWidth = mesh->lightning_segments[i].getRadius();
+    glowWidth = lightningWidth * 3.0;
+    if (glowWidth < 0.08) glowWidth = 0.08;
 
     // -------------------------------------------------
     // change color based on distance from segment

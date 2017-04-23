@@ -111,7 +111,8 @@ public:
   // LIGHTNING
   void addLightning(glm::vec3 start_pos);
   void addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
-                 float branch_probability, float mean_branch_length);
+                 float start_radius, float branch_probability, 
+                 float mean_branch_length);
 
 private:
 
