@@ -173,6 +173,11 @@ void GLCanvas::animate(){
     raytracer->setupVBOs();
   }
 
+  if (args->render_to_file) {
+    renderImage("test.png"); 
+    args->render_to_file = false;
+  }
+
   usleep (1000);
 }
 
@@ -460,6 +465,11 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
     case 'x':  case 'X':
       std::cout << "CURRENT CAMERA" << std::endl;
       std::cout << *camera << std::endl;
+      break;
+
+    case 'y':  case 'Y':
+      args->gather_indirect = false;
+      args->render_to_file = true;
       break;
 
     case 'q':  case 'Q':

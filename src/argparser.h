@@ -140,6 +140,7 @@ public:
     height = 500;
     raytracing_animation = false;
     radiosity_animation = false;
+    render_to_file = false;
 
     // RADIOSITY PARAMETERS
     render_mode = RENDER_MATERIALS;
@@ -177,6 +178,7 @@ public:
   int height;
   bool raytracing_animation;
   bool radiosity_animation;
+  bool render_to_file;
 
   // RADIOSITY PARAMETERS
   enum RENDER_MODE render_mode;

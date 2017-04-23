@@ -12,6 +12,7 @@ add_executable(${my_executable}
   main.cpp
   camera.cpp
   glCanvas.cpp
+  render_image.cpp
   mesh.cpp
   edge.cpp
   radiosity.cpp
