@@ -16,9 +16,9 @@ void Mesh::addLightning(glm::vec3 start_pos) {
  
   // Center branch goes from starting position to ground plane 
   glm::vec3 dir(0,-1,0);
-  float dist = glm::distance(start_pos, glm::vec3(0,0,0));
+  float dist = glm::distance(start_pos, glm::vec3(0,1.5,0));
   float branch_probability = 0.2;
-  float mean_branch_length = 2.0;
+  float mean_branch_length = 1.2;
   float start_radius = 0.05;
   addBranch(start_pos, dir, dist, start_radius, branch_probability, 
             mean_branch_length);

@@ -4,7 +4,7 @@ reflective 0 0 0
 emitted 90 90 90
 
 material
-diffuse 0.7 0.7 0.7
+texture_file water.ppm
 reflective 0 0 0
 emitted 0 0 0
 
@@ -13,23 +13,19 @@ diffuse 0.1 0.1 0.1
 reflective 0.8 0.8 0.8
 emitted 0 0 0
 
-material
-diffuse 0 0.5 0
-reflective 0 0 0
-emitted 0 0 0
-
 m 1
 v -3 0 -3
+vt 0 1
 v -3 0 3
+vt 0 0
 v 3 0 3
+vt 1 0
 v 3 0 -3
+vt 1 1
 f 1 2 3 4
 
 m 2
-s -0.75 0.5 0 0.5
-
-m 3
-s 0.5 0.3 -0.5 0.3
+s -1.85 0.5 0 0.5
 
 background_color 0.2 0.1 0.6
 
