@@ -421,7 +421,7 @@ void Radiosity::setupVBOs() {
       num_textured_materials++;
     }
   }
-  assert (num_textured_materials <= 1);
+  //assert (num_textured_materials <= 1);
 
   HandleGLError("leave radiosity setupVBOs()");
 }
