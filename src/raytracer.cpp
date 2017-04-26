@@ -98,6 +98,18 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
   float maxChannelContribution = 1.0f;
   float maxGlowContribution = 0.08f;
 
+  // find the plane which the lightning lies in. Assumes at least 2 segments exist
+  glm::vec3 p0 = mesh->lightning_segments[0].getStart();
+  glm::vec3 p1 = mesh->lightning_segments[0].getEnd();
+  glm::vec3 p2 = mesh->lightning_segments[1].getStart();
+  glm::vec3 p3 = mesh->lightning_segments[1].getEnd();
+  glm::vec3 n = glm::normalize(glm::cross(p1 - p0, p3 - p2));
+
+  // and solve for the intersection of ray and plane
+  float t = glm::dot(p0 - ray.getOrigin(), n) / glm::dot(ray.getDirection(), n);
+
+  glm::vec3 plane_point = ray.getOrigin() + t * ray.getDirection();
+
   for (int i=0; i<numSegments; i++) {
 
     glm::vec3 startPoint = mesh->lightning_segments[i].getStart();
@@ -109,21 +121,15 @@ glm::vec3 RayTracer::TraceRay(Ray &ray, Hit &hit, int bounce_count) const {
     // -------------------------------------------------
     // change color based on distance from segment
 
-    // find the distance between segment i and the ray
     glm::vec3 segment_dir = glm::normalize(endPoint - startPoint);
-    glm::vec3 perp = glm::cross(ray.getDirection(), segment_dir);
 
-    // find the closest point on line i to the ray
-    float point_dist = glm::dot(ray.getOrigin() - startPoint, glm::cross(ray.getDirection(), perp));
-    point_dist /= glm::dot(segment_dir, glm::cross(ray.getDirection(), perp));
+    // get the closest point on the segment to the line
+    float line_t = glm::dot(plane_point - startPoint, segment_dir);
+    line_t = std::max(line_t, 0.0f);
+    line_t = std::min(line_t, glm::length(endPoint - startPoint));
 
-    // clamp to be in the actual segment
-    point_dist = std::max(point_dist, 0.0f);
-    point_dist = std::min(point_dist, glm::length(endPoint - startPoint));
-
-    // and find the distance from that point to the ray
-    glm::vec3 p = startPoint + point_dist * segment_dir;
-    float dist = glm::length(glm::cross(p - ray.getOrigin(), ray.getDirection()));
+    // calculate the distance from plane intersection to that point
+    float dist = glm::distance(plane_point, startPoint + line_t * segment_dir);
 
     // now add the contribution based on distance
     float contribution = std::exp(-std::pow(2.0 * dist / lightningWidth, sharpness));
