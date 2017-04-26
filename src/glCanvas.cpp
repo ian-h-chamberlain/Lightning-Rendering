@@ -206,6 +206,7 @@ void GLCanvas::initializeVBOs(){
   radiosity->initializeVBOs();
   raytracer->initializeVBOs();
   photon_mapping->initializeVBOs();
+  mesh->initializeLightningVBOs();
 
   HandleGLError("leaving initilizeVBOs()");
 }
@@ -217,6 +218,7 @@ void GLCanvas::setupVBOs(){
   bbox.setupVBOs();
   radiosity->setupVBOs();
   photon_mapping->setupVBOs();
+  mesh->setupLightningVBOs();
   HandleGLError("leaving GLCanvas::setupVBOs()");
 }
 
@@ -242,6 +244,7 @@ void GLCanvas::drawVBOs(const glm::mat4 &ProjectionMatrix,const glm::mat4 &ViewM
   radiosity->drawVBOs();
   photon_mapping->drawVBOs();
   RayTree::drawVBOs();
+  mesh->drawLightningVBOs();
   if (args->intersect_backfacing) {
     glDisable(GL_CULL_FACE);
   }
@@ -259,6 +262,7 @@ void GLCanvas::cleanupVBOs(){
   raytracer->cleanupVBOs();  
   RayTree::cleanupVBOs();  
   bbox.cleanupVBOs();
+  mesh->cleanupLightningVBOs();
 }
 
 

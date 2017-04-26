@@ -107,13 +107,6 @@ public:
   // OTHER FUNCTIONS
   void Subdivision();
 
-  // ===============
-  // LIGHTNING
-  void addLightning(glm::vec3 start_pos);
-  void addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
-                 float start_radius, float branch_probability, 
-                 float mean_branch_length);
-
 private:
 
   // ==================================================
@@ -131,8 +124,6 @@ private:
   std::vector<Material*> materials;
   glm::vec3 background_color;
   Camera *camera;
-  std::vector<LightningSegment> lightning_segments;
-  glm::vec3 lightning_start;
  private:
 
   // the bounding box of all rasterized faces in the scene
@@ -153,6 +144,26 @@ private:
   std::vector<Face*> rasterized_primitive_faces;
   // the quads from the .obj file after subdivision
   std::vector<Face*> subdivided_quads;
+
+  // ========  
+  // LIGHTNING
+ public:
+  void addLightning(glm::vec3 start_pos);
+  void addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
+                 float start_radius, float branch_probability, 
+                 float mean_branch_length);
+  std::vector<LightningSegment> lightning_segments;
+  glm::vec3 lightning_start;
+  void initializeLightningVBOs();
+  void setupLightningVBOs();
+  void drawLightningVBOs();
+  void cleanupLightningVBOs();
+ private:
+  GLuint lightning_tri_verts_VBO;
+  GLuint lightning_tri_indices_VBO;
+  std::vector<VBOPosNormalColor> lightning_tri_verts;
+  std::vector<VBOIndexedTri> lightning_tri_indices;
+
 };
 
 // ======================================================================

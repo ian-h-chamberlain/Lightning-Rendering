@@ -80,6 +80,15 @@ inline float AreaOfTriangle(const glm::vec3 &a, const glm::vec3 &b, const glm::v
   return AreaOfTriangle(aside,bside,cside);
 }
 
+inline glm::vec3 ComputeTriNormal(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
+  glm::vec3 v12 = p2;
+  v12 -= p1;
+  glm::vec3 v23 = p3;
+  v23 -= p2;
+  glm::vec3 normal = glm::normalize(glm::cross(v12,v23));
+  return normal;
+}
+
 // utility function to generate random numbers used for sampling
 inline glm::vec3 RandomUnitVector() {
   glm::vec3 tmp;
