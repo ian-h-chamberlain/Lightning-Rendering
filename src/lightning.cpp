@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "utils.h"
+#include "primitive.h"
 #include <random>
 #include <glm/gtx/rotate_vector.hpp>
 
@@ -15,26 +16,29 @@ float rand_float() {
 
 void Mesh::addLightning(glm::vec3 start_pos) {
  
-  // Center branch goes from starting position to ground plane 
-  glm::vec3 dir(0,-1,0);
-  float dist = glm::distance(start_pos, glm::vec3(0,1.5,0));
+  // Center branch goes from starting position to closest primitive
+  glm::vec3 closest = closestPrimitivePoint(start_pos);
+  printf("Closest Prim: (%.2f, %.2f, %.2f)\n", closest.x, closest.y, closest.z);
+  glm::vec3 dir = glm::normalize(closest - start_pos);
+  float dist = glm::distance(start_pos, closest);
   float branch_probability = 0.2;
   float mean_branch_length = 1.2;
+  float max_seg_angle = 20.0;
   float start_radius = 0.05;
   addBranch(start_pos, dir, dist, start_radius, branch_probability, 
-            mean_branch_length);
+            mean_branch_length, max_seg_angle, true);
 
 }
 
 
 void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
                      float start_radius, float branch_probability, 
-                     float mean_branch_length) {
+                     float mean_branch_length, float max_seg_angle,
+                     bool main_branch) {
 
   // Branch properties
-  //float start_radius = 0.05;
+  float max_seg_angle_degrees = max_seg_angle;
   float mean_seg_length = 0.08;
-  float max_seg_angle_degrees = 40.0;
   float max_branch_angle_degrees = 20.0;
   glm::vec3 rotation_normal(0,0,1);
 
@@ -47,11 +51,12 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
   last = start_pos;
   radius = start_radius;
   radius_delta = start_radius / (dist / mean_seg_length);
+  if (main_branch) max_seg_angle_degrees = 5.0;
 
   // Create segments
   while (glm::distance(next, start_pos) < dist) {
     // Random segment angle
-    angle = (0.5 - rand_float()) * 2.0 * max_seg_angle_degrees;         
+    angle = (0.5 - rand_float()) * 2.0 * max_seg_angle_degrees;
     angle = angle * (M_PI / 180.0);
     // Random segment length
     seglength = rand_float() * 2.0 * mean_seg_length;
@@ -69,7 +74,7 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
       branch = glm::rotate(next-last, branch_angle, rotation_normal);
       branch = glm::normalize(branch);
       addBranch(next, branch, branch_dist, radius, branch_probability*0.2, 
-                mean_branch_length*0.5);
+                mean_branch_length*0.5, max_seg_angle*1.3, false);
     }
     // Update for next iteration
     last = next;
@@ -78,6 +83,22 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
   }
 
 }
+
+
+glm::vec3 Mesh::closestPrimitivePoint(glm::vec3 start) {
+  float shortestDist = FLT_MAX, dist;
+  glm::vec3 closestPoint(start), point;
+  for (unsigned int i = 0; i < primitives.size(); i++) {
+    point = primitives[i]->closestPoint(start);
+    dist = glm::distance(start, point);
+    if (dist < shortestDist) {
+      shortestDist = dist;
+      closestPoint = point;
+    }
+  }
+  return closestPoint;
+}
+
 
 void Mesh::initializeLightningVBOs() {
   glGenBuffers(1,&lightning_tri_verts_VBO);

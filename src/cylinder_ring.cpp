@@ -151,3 +151,7 @@ void CylinderRing::addRasterizedFaces(Mesh *m, ArgParser *args) {
     }
   }
 }
+
+glm::vec3 CylinderRing::closestPoint(glm::vec3 point) {
+    return glm::vec3(0,0,0);
+}

@@ -124,3 +124,8 @@ void Sphere::addRasterizedFaces(Mesh *m, ArgParser *args) {
     m->addRasterizedPrimitiveFace(b,c,d,a,material);
   }
 }
+
+glm::vec3 Sphere::closestPoint(glm::vec3 point) {
+    glm::vec3 dir = point - center;
+    return center + (dir * radius);
+}

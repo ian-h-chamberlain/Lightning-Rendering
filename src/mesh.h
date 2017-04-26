@@ -151,7 +151,9 @@ private:
   void addLightning(glm::vec3 start_pos);
   void addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
                  float start_radius, float branch_probability, 
-                 float mean_branch_length);
+                 float mean_branch_length, float max_seg_angle,
+                 bool main_branch);
+  glm::vec3 closestPrimitivePoint(glm::vec3 start);
   std::vector<LightningSegment> lightning_segments;
   glm::vec3 lightning_start;
   void initializeLightningVBOs();

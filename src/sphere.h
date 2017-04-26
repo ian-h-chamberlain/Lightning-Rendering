@@ -19,6 +19,9 @@ public:
   // for ray tracing
   virtual bool intersect(const Ray &r, Hit &h) const;
 
+  // for lightning
+  glm::vec3 closestPoint(glm::vec3 point);
+
   // for OpenGL rendering & radiosity
   void addRasterizedFaces(Mesh *m, ArgParser *args);
 

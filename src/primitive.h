@@ -24,6 +24,9 @@ class Primitive {
   // for ray tracing
   virtual bool intersect(const Ray &r, Hit &h) const = 0;
 
+  // for lightning
+  virtual glm::vec3 closestPoint(glm::vec3 point) = 0;
+
   // for OpenGL rendering & radiosity
   virtual void addRasterizedFaces(Mesh *m, ArgParser *args) = 0;
 
