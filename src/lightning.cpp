@@ -23,8 +23,8 @@ void Mesh::addLightning(glm::vec3 start_pos) {
   float dist = glm::distance(start_pos, closest);
   float branch_probability = 0.2;
   float mean_branch_length = 1.2;
-  float max_seg_angle = 20.0;
-  float start_radius = 0.05;
+  float max_seg_angle = 40.0;
+  float start_radius = 0.02;
   addBranch(start_pos, dir, dist, start_radius, branch_probability, 
             mean_branch_length, max_seg_angle, true);
 
@@ -39,7 +39,7 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
   // Branch properties
   float max_seg_angle_degrees = max_seg_angle;
   float mean_seg_length = 0.08;
-  float max_branch_angle_degrees = 20.0;
+  float max_branch_angle_degrees = 50.0;
   glm::vec3 rotation_normal(0,0,1);
 
   // Variables to track branch construction
@@ -51,7 +51,7 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
   last = start_pos;
   radius = start_radius;
   radius_delta = start_radius / (dist / mean_seg_length);
-  if (main_branch) max_seg_angle_degrees = 5.0;
+  if (main_branch) max_seg_angle_degrees = 30.0;
 
   // Create segments
   while (glm::distance(next, start_pos) < dist) {
@@ -73,13 +73,13 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
       branch_dist = rand_float() * 2.0 * mean_branch_length;
       branch = glm::rotate(next-last, branch_angle, rotation_normal);
       branch = glm::normalize(branch);
-      addBranch(next, branch, branch_dist, radius, branch_probability*0.2, 
+      addBranch(next, branch, branch_dist, radius, branch_probability*0.1, 
                 mean_branch_length*0.5, max_seg_angle*1.3, false);
     }
     // Update for next iteration
     last = next;
-    radius -= radius_delta;
-    if (radius < 0.02) radius = 0.02;
+    //radius -= radius_delta;
+    //if (radius < 0.02) radius = 0.02;
   }
 
 }
