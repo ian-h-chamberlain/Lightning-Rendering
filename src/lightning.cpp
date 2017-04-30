@@ -20,11 +20,11 @@ void Mesh::addLightning(glm::vec3 start_pos) {
   glm::vec3 closest = closestPrimitivePoint(start_pos);
   printf("Closest Prim: (%.2f, %.2f, %.2f)\n", closest.x, closest.y, closest.z);
   glm::vec3 dir = glm::normalize(closest - start_pos);
-  float dist = glm::distance(start_pos, closest);
+  float dist = glm::distance(start_pos, closest) * 1.0;
   float branch_probability = 0.2;
-  float mean_branch_length = 1.2;
-  float max_seg_angle = 40.0;
-  float start_radius = 0.02;
+  float mean_branch_length = 0.8;
+  float max_seg_angle = 30.0;
+  float start_radius = 0.05;
   addBranch(start_pos, dir, dist, start_radius, branch_probability, 
             mean_branch_length, max_seg_angle, true);
 
@@ -73,7 +73,7 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
       branch_dist = rand_float() * 2.0 * mean_branch_length;
       branch = glm::rotate(next-last, branch_angle, rotation_normal);
       branch = glm::normalize(branch);
-      addBranch(next, branch, branch_dist, radius, branch_probability*0.1, 
+      addBranch(next, branch, branch_dist, radius*0.5, branch_probability*0.8, 
                 mean_branch_length*0.5, max_seg_angle*1.3, false);
     }
     // Update for next iteration

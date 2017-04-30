@@ -126,6 +126,6 @@ void Sphere::addRasterizedFaces(Mesh *m, ArgParser *args) {
 }
 
 glm::vec3 Sphere::closestPoint(glm::vec3 point) {
-    glm::vec3 dir = point - center;
+    glm::vec3 dir = glm::normalize(point - center);
     return center + (dir * radius);
 }
