@@ -48,7 +48,7 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
   glm::vec3 last, next, branch;
 
   // Initialize
-  next = start_pos
+  next = start_pos;
   last = start_pos;
   radius = start_radius;
   radius_delta = start_radius / (dist / mean_seg_length);
