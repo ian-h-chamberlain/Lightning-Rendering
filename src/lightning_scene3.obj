@@ -4,7 +4,7 @@ reflective 0 0 0
 emitted 90 90 90
 
 material
-texture_file water2.ppm
+diffuse 0.7 0.7 0.7
 reflective 0 0 0
 emitted 0 0 0
 
@@ -14,7 +14,7 @@ reflective 0.8 0.8 0.8
 emitted 0 0 0
 
 material
-texture_file clouds2.ppm
+texture_file clouds.ppm
 reflective 0 0 0
 emitted 0 0 0
 
@@ -29,27 +29,18 @@ v 3 0 -3
 vt 1 1
 f 1 2 3 4
 
-m 3
-v -3 6 -3
-vt 0 1
-v -3 0 -3
-vt 0 0
-v 3 0 -3
-vt 1 0
-v 3 6 -3
-vt 1 1
-f 5 6 7 8
-
 m 2
-s 1.25 0.5 0.0 0.2
+s -0.75 0.5 0.0 0.5
+
+m 3
+s 0.5 0.3 -0.5 0.3
 
 background_color 0.2 0.1 0.6
 
 l 0.0 4.5 0.0
-l -2.5 4.5 0.0
 
 PerspectiveCamera {
-  camera_position    < 0.0, 6.0, 18.0 >
+  camera_position    < 0.0, 6.0, 20.0 >
   point_of_interest  < 0.0, 2.0, 0.0 >
   up                 < 0, 1, 0 >
   angle              15

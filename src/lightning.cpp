@@ -18,8 +18,9 @@ void Mesh::addLightning(glm::vec3 start_pos) {
  
   // Center branch goes from starting position to closest primitive
   glm::vec3 closest = closestPrimitivePoint(start_pos);
-  printf("Closest Prim: (%.2f, %.2f, %.2f)\n", closest.x, closest.y, closest.z);
+  printf("Closest Primitive: (%.2f, %.2f, %.2f)\n", closest.x, closest.y, closest.z);
   glm::vec3 dir = glm::normalize(closest - start_pos);
+  // Experimentally chosen properties
   float dist = glm::distance(start_pos, closest) * 1.0;
   float branch_probability = 0.2;
   float mean_branch_length = 0.8;
@@ -27,7 +28,7 @@ void Mesh::addLightning(glm::vec3 start_pos) {
   float start_radius = 0.05;
   addBranch(start_pos, dir, dist, start_radius, branch_probability, 
             mean_branch_length, max_seg_angle, true);
-
+  printf("Lightning Created: %lu segments added\n", lightning_segments.size());
 }
 
 
@@ -36,7 +37,7 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
                      float mean_branch_length, float max_seg_angle,
                      bool main_branch) {
 
-  // Branch properties
+  // More branch properties
   float max_seg_angle_degrees = max_seg_angle;
   float mean_seg_length = 0.08;
   float max_branch_angle_degrees = 50.0;
@@ -47,7 +48,7 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
   glm::vec3 last, next, branch;
 
   // Initialize
-  next = start_pos;
+  next = start_pos
   last = start_pos;
   radius = start_radius;
   radius_delta = start_radius / (dist / mean_seg_length);
@@ -73,18 +74,17 @@ void Mesh::addBranch(glm::vec3 start_pos, glm::vec3 dir, float dist,
       branch_dist = rand_float() * 2.0 * mean_branch_length;
       branch = glm::rotate(next-last, branch_angle, rotation_normal);
       branch = glm::normalize(branch);
+      // Add branch recursively using branch multipliers
       addBranch(next, branch, branch_dist, radius*0.5, branch_probability*0.8, 
                 mean_branch_length*0.5, max_seg_angle*1.3, false);
     }
     // Update for next iteration
     last = next;
-    //radius -= radius_delta;
-    //if (radius < 0.02) radius = 0.02;
   }
 
 }
 
-
+// Find the closest primitive (sphere) point 
 glm::vec3 Mesh::closestPrimitivePoint(glm::vec3 start) {
   float shortestDist = FLT_MAX, dist;
   glm::vec3 closestPoint(start), point;
@@ -99,6 +99,9 @@ glm::vec3 Mesh::closestPrimitivePoint(glm::vec3 start) {
   return closestPoint;
 }
 
+
+// ====================================================
+// VBO Functions for rendering into scene for debugging
 
 void Mesh::initializeLightningVBOs() {
   glGenBuffers(1,&lightning_tri_verts_VBO);
